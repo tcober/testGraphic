@@ -17,6 +17,7 @@ export class GraphicComponent implements OnInit, AfterViewInit {
 
   ngOnInit() {
     this.dataTransform(this.hierarchical);
+    this.makingChildren(this.hierarchical)
     this.chart();
   }
 
@@ -38,7 +39,13 @@ export class GraphicComponent implements OnInit, AfterViewInit {
       });
   }
 
+  //go through the first element
+  //add a children field
   dataTransform(element: any) {
+    if (element.children) {
+      this.makingChildren(element);
+      return
+    }
     element.successors = element.successors.split(",");
     element.successors.forEach(i => {
       if (!element.children) {
@@ -47,6 +54,9 @@ export class GraphicComponent implements OnInit, AfterViewInit {
       let foundOne = _.find(this.graphic.tasks, { "task_number": parseInt(i) });
       element.children.push(foundOne);
     });
+  }
+
+  makingChildren(element: any) {
     if (element.children.length) {
       element.children.forEach(j => {
         j.successors = j.successors.split(",");
@@ -57,23 +67,31 @@ export class GraphicComponent implements OnInit, AfterViewInit {
           let foundOne = _.find(this.graphic.tasks, { "task_number": parseInt(k) });
           j.children.push(foundOne);
         });
+        if (j.children.length) {
+          j.children.forEach(l => {
+            this.dataTransform(l);
+          })
+        }
       })
     }
   }
 
-  //go through the first element
-  //then go through the children
-
   chart() {
     const width = 2000;
-    const dx = 30;
+    const dx = 50;
     const dy = width / 6;
     const tree = d3.tree().nodeSize([dx, dy]);
     const diagonal = d3
       .linkHorizontal()
       .x(d => d.y)
-      .y(d => d.x);
-    const margin = { top: 10, right: 120, bottom: 10, left: 40 };
+      .y(d => {
+        if (d.depth && d.depth == 3) {
+          return 0;
+        } else {
+          return d.x;
+        }
+      });
+    const margin = { top: 10, right: 120, bottom: 10, left: 100 };
     const root = d3.hierarchy(this.hierarchical);
 
     root.x0 = dy / 2;
@@ -81,7 +99,7 @@ export class GraphicComponent implements OnInit, AfterViewInit {
     root.descendants().forEach((d, i) => {
       d.id = i;
       d._children = d.children;
-      console.log(d);
+      // console.log(d);
       if (d.depth && d.data.task_number.length !== 7) d.children = null;
     });
 
@@ -93,10 +111,11 @@ export class GraphicComponent implements OnInit, AfterViewInit {
       .style("font", "10px sans-serif")
       .style("user-select", "none");
 
+    // The line
     const gLink = svg
       .append("g")
       .attr("fill", "none")
-      .attr("stroke", "#555")
+      .attr("stroke", "blue")
       .attr("stroke-opacity", 0.4)
       .attr("stroke-width", 1.5);
 
@@ -142,26 +161,32 @@ export class GraphicComponent implements OnInit, AfterViewInit {
 
       nodeEnter
         .append("circle")
-        .attr("r", 2.5)
-        .attr("fill", d => (d._children ? "#555" : "#999"));
+        .attr("r", 5.5)
+        .attr("fill", d => (d._children ? "#000" : "#999"));
 
       nodeEnter
         .append("text")
         .attr("dy", "0.31em")
-        .attr("x", d => (d._children ? -6 : 6))
+        .attr("x", d => (d._children ? -8 : 6))
         .attr("text-anchor", d => (d._children ? "end" : "start"))
         .text(d => d.data.task)
         .clone(true)
         .lower()
         .attr("stroke-linejoin", "round")
-        .attr("stroke-width", 3)
+        .attr("stroke-width", 5)
         .attr("stroke", "white");
 
       // Transition nodes to their new position.
       const nodeUpdate = node
         .merge(nodeEnter)
         .transition(transition)
-        .attr("transform", d => `translate(${d.y},${d.x})`)
+        .attr("transform", d => {
+          if (d.data.id == 243709) {
+            return `translate(${d.y}, 0)`
+          } else {
+            return `translate(${d.y},${d.x})`;
+          }
+        })
         .attr("fill-opacity", 1)
         .attr("stroke-opacity", 1);
 
@@ -175,7 +200,7 @@ export class GraphicComponent implements OnInit, AfterViewInit {
         .attr("stroke-opacity", 0);
 
       // Update the links…
-      const link = gLink.selectAll("path").data(links, d => d.target.id);
+      const link = gLink.selectAll("path").data(links, d => { return d.target.id });
 
       // Enter any new links at the parent's previous position.
       const linkEnter = link
