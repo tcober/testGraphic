@@ -21,6 +21,7 @@ export class ForceComponent implements OnInit {
     this.data = this.dataTransformService.transformData(this.taskData);
     console.log(this.data);
     this.createChart();
+    console.log("Hello");
   }
 
   createChart() {
