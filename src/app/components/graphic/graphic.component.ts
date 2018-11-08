@@ -158,6 +158,22 @@ export class GraphicComponent implements OnInit, AfterViewInit {
           update(d);
         });
 
+      // nodeEnter
+      //   .append("foreignobject")
+      //   .attr("width", "230px")
+      //   .attr("height", "50px")
+      //   .attr("fill", "white")
+      //   .attr("stroke-width", "3px")
+      //   .attr("stroke", "#000")
+      //   .append("div")
+      //   .append("p")
+      //   .attr("innerHTML", `d.data.task`)
+      //   .clone(true)
+      //   .lower()
+      //   .attr("stroke-linejoin", "round")
+      //   .attr("stroke-width", 8)
+      //   .attr("stroke", "white");
+
       nodeEnter
         .append("circle")
         .attr("r", 5.5)
@@ -172,7 +188,7 @@ export class GraphicComponent implements OnInit, AfterViewInit {
         .clone(true)
         .lower()
         .attr("stroke-linejoin", "round")
-        .attr("stroke-width", 5)
+        .attr("stroke-width", 8)
         .attr("stroke", "white");
 
       // Transition nodes to their new position.
