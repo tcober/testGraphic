@@ -78,8 +78,8 @@ export class GraphicComponent implements OnInit, AfterViewInit {
 
   chart() {
     const width = 2000;
-    const dx = 50;
-    const dy = width / 6;
+    const dx = 60;
+    const dy = width / 4;
     const tree = d3.tree().nodeSize([dx, dy]);
     const diagonal = d3
       .linkHorizontal()
@@ -91,7 +91,7 @@ export class GraphicComponent implements OnInit, AfterViewInit {
           return d.x;
         }
       });
-    const margin = { top: 10, right: 120, bottom: 10, left: 100 };
+    const margin = { top: 10, right: 10, bottom: 10, left: 200 };
     const root = d3.hierarchy(this.hierarchical);
 
     root.x0 = dy / 2;
@@ -99,7 +99,6 @@ export class GraphicComponent implements OnInit, AfterViewInit {
     root.descendants().forEach((d, i) => {
       d.id = i;
       d._children = d.children;
-      // console.log(d);
       if (d.depth && d.data.task_number.length !== 7) d.children = null;
     });
 
@@ -108,16 +107,16 @@ export class GraphicComponent implements OnInit, AfterViewInit {
       .attr("width", width)
       .attr("height", dx)
       .attr("viewBox", [-margin.left, -margin.top, width, dx])
-      .style("font", "10px sans-serif")
+      .style("font", "14px sans-serif")
       .style("user-select", "none");
 
     // The line
     const gLink = svg
       .append("g")
       .attr("fill", "none")
-      .attr("stroke", "blue")
+      .attr("stroke", "#02046d")
       .attr("stroke-opacity", 0.4)
-      .attr("stroke-width", 1.5);
+      .attr("stroke-width", 2.5);
 
     const gNode = svg.append("g").attr("cursor", "pointer");
 
@@ -162,12 +161,12 @@ export class GraphicComponent implements OnInit, AfterViewInit {
       nodeEnter
         .append("circle")
         .attr("r", 5.5)
-        .attr("fill", d => (d._children ? "#000" : "#999"));
+        .attr("fill", d => (d._children ? "#e6d32a" : "#999"));
 
       nodeEnter
         .append("text")
         .attr("dy", "0.31em")
-        .attr("x", d => (d._children ? -8 : 6))
+        .attr("x", d => (d._children ? -20 : 15))
         .attr("text-anchor", d => (d._children ? "end" : "start"))
         .text(d => d.data.task)
         .clone(true)
