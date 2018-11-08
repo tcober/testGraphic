@@ -176,7 +176,7 @@ export class GraphicComponent implements OnInit, AfterViewInit {
 
       nodeEnter
         .append("circle")
-        .attr("r", 5.5)
+        .attr("r", 9.5)
         .attr("fill", d => (d._children ? "#e6d32a" : "#999"));
 
       nodeEnter
@@ -250,10 +250,8 @@ export class GraphicComponent implements OnInit, AfterViewInit {
     }
 
     update(root);
-
     const container = document.querySelector(".container");
     this.svg = svg.node();
-
     container.appendChild(this.svg);
   }
 }
