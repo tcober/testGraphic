@@ -16,8 +16,7 @@ export class GraphicComponent implements OnInit, AfterViewInit {
   constructor() { }
 
   ngOnInit() {
-    this.dataTransform(this.hierarchical);
-    this.makingChildren(this.hierarchical)
+    this.transformData();
     this.chart();
   }
 
@@ -28,70 +27,42 @@ export class GraphicComponent implements OnInit, AfterViewInit {
     this.svg = parser.parseFromString(this.svg, "text/xml");
   }
 
-  elipsisAdd() {
-    const svg = d3.select("svg");
-    svg
-      .selectAll("a")
-      .append("text")
-      .attr("class", "elipsis")
-      .text(() => {
-        return "...";
-      });
-  }
+  transformData() {
+    let self = this;
+    self.graphic.tasks.forEach(function (task) {
+      task.children = task.children || [];
 
-  //go through the first element
-  //add a children field
-  dataTransform(element: any) {
-    if (element.children) {
-      this.makingChildren(element);
-      return
-    }
-    element.successors = element.successors.split(",");
-    element.successors.forEach(i => {
-      if (!element.children) {
-        element.children = []
-      }
-      let foundOne = _.find(this.graphic.tasks, { "task_number": parseInt(i) });
-      element.children.push(foundOne);
-    });
-  }
+      if (task.successors) {
+        let successorIds = task.successors.split(',');
+        successorIds.forEach(function (successorId) {
+          let successor = self.graphic.tasks.find(function (successorTask) {
+            return successorTask.task_number == +successorId;
+          });
 
-  makingChildren(element: any) {
-    if (element.children.length) {
-      element.children.forEach(j => {
-        j.successors = j.successors.split(",");
-        j.successors.forEach(k => {
-          if (!j.children) {
-            j.children = [];
-          }
-          let foundOne = _.find(this.graphic.tasks, { "task_number": parseInt(k) });
-          j.children.push(foundOne);
+          task.children.push(successor);
         });
-        if (j.children.length) {
-          j.children.forEach(l => {
-            this.dataTransform(l);
-          })
-        }
-      })
-    }
+      }
+    });
+
+    this.graphic = this.graphic.tasks[0];
   }
 
   chart() {
-    const width = 2000;
+    const width = 3000;
     const dx = 60;
-    const dy = width / 4;
+    const dy = width / 8;
     const tree = d3.tree().nodeSize([dx, dy]);
     const diagonal = d3
       .linkHorizontal()
       .x(d => d.y)
       .y(d => {
-        if (d.depth && d.depth == 3) {
+        if (d.depth && (d.depth == 3 || d.depth == 5) {
           return 0;
         } else {
           return d.x;
         }
       });
-    const margin = { top: 10, right: 10, bottom: 10, left: 200 };
+    const margin = { top: 40, right: 10, bottom: 40, left: 200 };
     const root = d3.hierarchy(this.hierarchical);
 
     root.x0 = dy / 2;
@@ -147,6 +118,7 @@ export class GraphicComponent implements OnInit, AfterViewInit {
       const node = gNode.selectAll("g").data(nodes, d => d.id);
 
       // Enter any new nodes at the parent's previous position.
+
       const nodeEnter = node
         .enter()
         .append("g")
@@ -158,45 +130,26 @@ export class GraphicComponent implements OnInit, AfterViewInit {
           update(d);
         });
 
-      // nodeEnter
-      //   .append("foreignobject")
-      //   .attr("width", "230px")
-      //   .attr("height", "50px")
-      //   .attr("fill", "white")
-      //   .attr("stroke-width", "3px")
-      //   .attr("stroke", "#000")
-      //   .append("div")
-      //   .append("p")
-      //   .attr("innerHTML", `d.data.task`)
-      //   .clone(true)
-      //   .lower()
-      //   .attr("stroke-linejoin", "round")
-      //   .attr("stroke-width", 8)
-      //   .attr("stroke", "white");
-
       nodeEnter
-        .append("circle")
-        .attr("r", 9.5)
-        .attr("fill", d => (d._children ? "#e6d32a" : "#999"));
+        .append('foreignObject')
+        .attr("y", "-25px")
+        .attr("x", d => (d._children ? -100 : 15))
+        .attr("width", "400px")
+        .attr("height", "30px")
+        .append('xhtml:div')
+        .attr("class", "bubble")
+        .attr("position", "absolute")
+        .attr("style",
+          "height: auto; width: auto; display: inline-block;background: #fff; border: 2px solid lightgrey; border-radius: 10px; padding: 10px;"
+        ).text(d => d.data.task)
 
-      nodeEnter
-        .append("text")
-        .attr("dy", "0.31em")
-        .attr("x", d => (d._children ? -20 : 15))
-        .attr("text-anchor", d => (d._children ? "end" : "start"))
-        .text(d => d.data.task)
-        .clone(true)
-        .lower()
-        .attr("stroke-linejoin", "round")
-        .attr("stroke-width", 8)
-        .attr("stroke", "white");
 
       // Transition nodes to their new position.
       const nodeUpdate = node
         .merge(nodeEnter)
         .transition(transition)
         .attr("transform", d => {
-          if (d.data.id == 243709) {
+          if (d.data.id == 243709 || d.data.id == 243727) {
             return `translate(${d.y}, 0)`
           } else {
             return `translate(${d.y},${d.x})`;
