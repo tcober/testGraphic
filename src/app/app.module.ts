@@ -9,12 +9,7 @@ import { D3FiddlinComponent } from "./components/d3-fiddlin/d3-fiddlin.component
 import { D3FiddlinService } from "./components/d3-fiddlin/d3-fiddlin.service";
 
 @NgModule({
-  declarations: [
-    AppComponent,
-    GraphicComponent,
-    EscapeHtmlPipe,
-    D3FiddlinComponent
-  ],
+  declarations: [AppComponent, GraphicComponent, EscapeHtmlPipe, D3FiddlinComponent],
   imports: [BrowserModule, AppRoutingModule, HttpClientModule],
   providers: [HttpClientModule, D3FiddlinService],
   bootstrap: [AppComponent]
