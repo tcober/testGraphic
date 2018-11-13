@@ -137,7 +137,7 @@ export class GraphicComponent implements OnInit, AfterViewInit {
         .append('foreignObject')
         .attr("y", "-25px")
         .attr("x", d => (d._children ? -100 : 15))
-        .attr("width", "350px")
+        .attr("width", "300px")
         .attr("height", "30px")
         .append('xhtml:div')
         .attr("class", "bubble")

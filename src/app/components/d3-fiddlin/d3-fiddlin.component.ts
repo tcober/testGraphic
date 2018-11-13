@@ -13,12 +13,13 @@ declare var require;
 export class D3FiddlinComponent implements OnInit {
   private apiData: any = require("../graphic/chart.json");
   private tasks: any[] = this.apiData.tasks;
+  public sidebar = false;
 
-  constructor(private d3FiddlinService: D3FiddlinService) {}
+  constructor(private d3FiddlinService: D3FiddlinService) { }
 
   ngOnInit() {
     let self = this;
-    this.tasks.forEach(function(task) {
+    this.tasks.forEach(function (task) {
       task.numAncestors = self.d3FiddlinService.setNumberOfAncestors(self.tasks, task, 0);
       task.numSiblings = self.d3FiddlinService.setNumberOfSiblings(self.tasks, task);
     });
@@ -28,11 +29,11 @@ export class D3FiddlinComponent implements OnInit {
 
   createChart() {
     var nodeSetup = {
-      height: 40,
+      height: 56,
       width: 200,
       padding: 5,
-      verticalSpacing: 10,
-      horizontalSpacing: 40
+      verticalSpacing: 20,
+      horizontalSpacing: 200
     };
 
     var numOfAncestors = this.d3FiddlinService.getTotalAncestorLevels(this.tasks);
@@ -57,7 +58,7 @@ export class D3FiddlinComponent implements OnInit {
       .zoom()
       .scaleExtent([0.5, 40])
       .translateExtent([[-100, -100], [svgSetup.width + 90, svgSetup.height + 100]])
-      .on("zoom", function() {
+      .on("zoom", function () {
         zoomContainer.attr("transform", d3.event.transform);
       });
     svg.call(zoom);
@@ -87,10 +88,10 @@ export class D3FiddlinComponent implements OnInit {
       .data(this.tasks)
       .enter()
       .append("g")
-      .attr("data-task-number", function(d) {
+      .attr("data-task-number", function (d) {
         return d["task_number"];
       })
-      .attr("transform", function(d, i) {
+      .attr("transform", function (d, i) {
         if (d["task_number"] == 25074 || d["task_number"] == 25109 || d["task_number"] == 25127) {
           d.numSiblings = 8;
         }
@@ -104,47 +105,21 @@ export class D3FiddlinComponent implements OnInit {
         );
       });
 
-    // 7. Create task icon container
-    var rect2 = bar
-      .append("rect")
-      .attr("width", 40)
-      .attr("fill", "#4286f4")
-      .attr("height", nodeSetup.height);
-
-    // 8. Create task node
-    var rect1 = bar
-      .append("rect")
-      .attr("class", "node")
-      .attr("width", nodeSetup.width)
-      .attr("fill", "none")
-      .attr("fill-opacity", 0)
-      .attr("height", nodeSetup.height);
-
-    // 9. Add symbol task node
-    var symbolContainerWidth = 15;
-
-    // var symbolContainer = bar
-    //   .append("text")
-    //   .attr("x", 5)
-    //   .attr("y", nodeSetup.height / 2)
-    //   .attr("dy", ".35em")
-    //   .attr("width", nodeSetup.width - nodeSetup.padding)
-    //   .attr("font-family", "Font Awesome 5 Free")
-    //   .attr("class", "task-icon")
-    //   .text(function(d) {
-    //     return faLayerGroup.icon[4];
-    //   });
-
-    // 10. Add text to task node
-    var textContainer = bar
-      .append("text")
-      .attr("x", symbolContainerWidth + 5)
-      .attr("y", nodeSetup.height / 2)
-      .attr("dy", ".35em")
-      .attr("width", nodeSetup.width - symbolContainerWidth)
-      .text(function(d) {
-        return d["task_number"];
-      });
+    bar
+      .append('foreignObject')
+      .attr("width", "200px")
+      .attr("height", "30px")
+      .append('xhtml:div')
+      .attr("class", "bubble")
+      .html((d) => {
+        return `
+            <div class="sidebar-trig"><span class="elipsis">&hellip;</span></div>
+            <div class="text-contain">
+              <img class="icon" src="../../assets/server.png"/>
+              <p class="bubble-text">${d.task}</p>
+            </div>
+            `;
+      })
 
     // 11. Create the links between nodes
     this.tasks.forEach(task => {
@@ -206,6 +181,15 @@ export class D3FiddlinComponent implements OnInit {
             .attr("d", pathData);
         });
       }
+    });
+
+    const sidebarTrig = document.querySelectorAll(".sidebar-trig");
+    sidebarTrig.forEach(element => {
+      element.addEventListener("click", event => {
+        event.stopPropagation();
+        event.preventDefault();
+        this.sidebar = !this.sidebar;
+      });
     });
   }
 }

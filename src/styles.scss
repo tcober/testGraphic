@@ -3,10 +3,11 @@ body {
   font-family: proxima-nova, sans-serif;
   .bubble {
     display: inline-flex;
+    flex-basis: 300px;
+    align-content: stretch;
     align-items: center;
     flex: 0 0 auto;
-    width: auto;
-    background: blue;
+    background: #3C8DBC;
     border: 1px solid #e0e0e0;
     border-radius: 3px;
     .sidebar-trig {
@@ -16,6 +17,7 @@ body {
       border-radius: 50%;
       background: #fff;
       margin: 5px;
+      cursor: pointer;
       .elipsis {
         color: blue;
         font-size: 10px;
@@ -27,20 +29,24 @@ body {
     }
 
     .text-contain {
-      display: inline-flex;
-      align-items: center;
-      flex: 0 0 auto;
-      background: #fff;
-      border-radius: 3px 0 0 3px;
-      padding: 0px 20px;
-      .bubble-text {
-        font-weight: medium;
-      }
-      .icon {
-        width: 16px;
-        height: 16px;
-        margin-right: 10px;
-      }
+        display: inline-flex;
+        flex: 1 0 auto;
+        align-items: center;
+        background: #fff;
+        border-radius: 3px 0 0 3px;
+        padding: 0px 20px;
+        .bubble-text {
+            font-weight: medium;
+            white-space: nowrap;
+            width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .icon {
+            width: 16px;
+            height: 16px;
+            margin-right: 10px;
+        }
     }
   }
 }
