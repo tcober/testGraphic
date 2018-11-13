@@ -1,5 +1,6 @@
 import { Component, OnInit } from "@angular/core";
 import { D3FiddlinService } from "./d3-fiddlin.service";
+import { faLayerGroup } from "@fortawesome/free-solid-svg-icons";
 import * as d3 from "d3";
 import * as _ from "lodash";
 declare var require;
@@ -18,49 +19,48 @@ export class D3FiddlinComponent implements OnInit {
   ngOnInit() {
     let self = this;
     this.tasks.forEach(function(task) {
-      task.numAncestors = self.d3FiddlinService.numberOfAncestors(
-        self.tasks,
-        task,
-        0
-      );
-      task.numSiblings = self.d3FiddlinService.numberOfSiblings(
-        self.tasks,
-        task
-      );
+      task.numAncestors = self.d3FiddlinService.setNumberOfAncestors(self.tasks, task, 0);
+      task.numSiblings = self.d3FiddlinService.setNumberOfSiblings(self.tasks, task);
     });
 
     this.createChart();
   }
 
   createChart() {
-    var svgWidth = 1000;
-    var svgHeight = 600;
+    var nodeSetup = {
+      height: 40,
+      width: 200,
+      padding: 5,
+      verticalSpacing: 10,
+      horizontalSpacing: 40
+    };
+
+    var numOfAncestors = this.d3FiddlinService.getTotalAncestorLevels(this.tasks);
+    var maxSiblingSize = this.d3FiddlinService.getMaxSiblingSize(this.tasks);
+
+    var svgSetup = {
+      height: maxSiblingSize * nodeSetup.height + (maxSiblingSize - 1) * nodeSetup.verticalSpacing,
+      width: numOfAncestors * nodeSetup.width + (numOfAncestors - 1) * nodeSetup.horizontalSpacing
+    };
 
     // 1. Create SVG
     var svg = d3
       .select(".svg-container")
       .append("svg")
-      .attr("width", svgWidth)
-      .attr("height", svgHeight)
+      .attr("width", svgSetup.width)
+      .attr("height", svgSetup.height)
       .attr("class", "svg-root");
 
     // 2. Create Zoom Container
     var zoomContainer = svg.append("g").attr("class", "zoom-container");
     var zoom = d3
       .zoom()
-      .scaleExtent([1, 40])
-      .translateExtent([[-100, -100], [svgWidth + 90, svgHeight + 100]])
+      .scaleExtent([0.5, 40])
+      .translateExtent([[-100, -100], [svgSetup.width + 90, svgSetup.height + 100]])
       .on("zoom", function() {
         zoomContainer.attr("transform", d3.event.transform);
       });
     svg.call(zoom);
-
-    // 3. Setup Sizing
-    var barPadding = 5;
-    var xBarSpacing = 40;
-    var barWidth = (svgWidth - xBarSpacing * (6 - 1)) / 6;
-    var barHeight = 30;
-    var maxSiblingSize = this.d3FiddlinService.getMaxSiblingSize(this.tasks);
 
     // 4. Create Groups (which act as containers)
     var defs = zoomContainer.append("defs").attr("id", "defs");
@@ -91,71 +91,64 @@ export class D3FiddlinComponent implements OnInit {
         return d["task_number"];
       })
       .attr("transform", function(d, i) {
-        if (
-          d["task_number"] == 25074 ||
-          d["task_number"] == 25109 ||
-          d["task_number"] == 25127
-        ) {
+        if (d["task_number"] == 25074 || d["task_number"] == 25109 || d["task_number"] == 25127) {
           d.numSiblings = 8;
         }
 
         return (
           "translate(" +
-          d.numAncestors * (barWidth + xBarSpacing) +
+          d.numAncestors * (nodeSetup.width + nodeSetup.horizontalSpacing) +
           "," +
-          d.numSiblings * (barHeight + 5) +
+          d.numSiblings * (nodeSetup.height + nodeSetup.verticalSpacing) +
           ")"
         );
       });
 
-    // 7. Create task node
+    // 7. Create task icon container
     var rect2 = bar
       .append("rect")
       .attr("width", 40)
       .attr("fill", "#4286f4")
-      .attr("height", barHeight);
+      .attr("height", nodeSetup.height);
 
-    // 8. Create task icon container
+    // 8. Create task node
     var rect1 = bar
       .append("rect")
       .attr("class", "node")
-      .attr("width", barWidth - barPadding)
+      .attr("width", nodeSetup.width)
       .attr("fill", "none")
       .attr("fill-opacity", 0)
-      .attr("height", barHeight);
+      .attr("height", nodeSetup.height);
 
     // 9. Add symbol task node
     var symbolContainerWidth = 15;
 
-    var symbolContainer = bar
-      .append("text")
-      .attr("x", 5)
-      .attr("y", barHeight / 2)
-      .attr("dy", ".35em")
-      .attr("width", barWidth - barPadding)
-      .attr("font-family", "Font Awesome 5 Free")
-      .attr("class", "task-icon")
-      // .attr('font-size', function(d) { return d.size + 'em' })
-      .text(function(d) {
-        return "\uf2cd";
-      });
+    // var symbolContainer = bar
+    //   .append("text")
+    //   .attr("x", 5)
+    //   .attr("y", nodeSetup.height / 2)
+    //   .attr("dy", ".35em")
+    //   .attr("width", nodeSetup.width - nodeSetup.padding)
+    //   .attr("font-family", "Font Awesome 5 Free")
+    //   .attr("class", "task-icon")
+    //   .text(function(d) {
+    //     return faLayerGroup.icon[4];
+    //   });
 
     // 10. Add text to task node
     var textContainer = bar
       .append("text")
       .attr("x", symbolContainerWidth + 5)
-      .attr("y", barHeight / 2)
+      .attr("y", nodeSetup.height / 2)
       .attr("dy", ".35em")
-      .attr("width", barWidth - symbolContainerWidth)
+      .attr("width", nodeSetup.width - symbolContainerWidth)
       .text(function(d) {
         return d["task_number"];
       });
 
     // 11. Create the links between nodes
     this.tasks.forEach(task => {
-      var startNode = d3
-        .select(`g[data-task-number="${task["task_number"]}"]`)
-        .node();
+      var startNode = d3.select(`g[data-task-number="${task["task_number"]}"]`).node();
       var src = {
         x: startNode.getCTM().e,
         y: startNode.getCTM().f
@@ -164,9 +157,7 @@ export class D3FiddlinComponent implements OnInit {
       if (task.successors) {
         var childrenTaskNumbers = task.successors.split(",");
         childrenTaskNumbers.forEach(childTaskNumber => {
-          var endNode = d3
-            .select(`g[data-task-number="${childTaskNumber}"]`)
-            .node();
+          var endNode = d3.select(`g[data-task-number="${childTaskNumber}"]`).node();
           var dest = {
             x: endNode.getCTM().e,
             y: endNode.getCTM().f
@@ -178,30 +169,30 @@ export class D3FiddlinComponent implements OnInit {
           if (childrenTaskNumbers.length > 1) {
             // more than one child (curves arrow differently)
             points = [
-              [src.x + barWidth * 0.75, src.y + barHeight / 2],
-              [src.x + barWidth * 0.75, dest.y + barHeight / 2],
-              [dest.x - 1, dest.y + barHeight / 2]
+              [src.x + nodeSetup.width * 0.75, src.y + nodeSetup.height / 2],
+              [src.x + nodeSetup.width * 0.75, dest.y + nodeSetup.height / 2],
+              [dest.x - 1, dest.y + nodeSetup.height / 2]
             ];
           } else {
             if (src.y > dest.y) {
               //src is higher than dest
               points = [
-                [src.x + barWidth - 5, src.y + barHeight / 2],
-                [dest.x + barWidth * 0.25, src.y + barHeight / 2],
-                [dest.x + barWidth * 0.25, dest.y + barHeight]
+                [src.x + nodeSetup.width - 5, src.y + nodeSetup.height / 2],
+                [dest.x + nodeSetup.width * 0.25, src.y + nodeSetup.height / 2],
+                [dest.x + nodeSetup.width * 0.25, dest.y + nodeSetup.height]
               ];
             } else if (src.y == dest.y) {
               //src is same level as dest
               points = [
-                [src.x + barWidth - 5, src.y + barHeight / 2],
-                [dest.x, dest.y + barHeight / 2]
+                [src.x + nodeSetup.width - 5, src.y + nodeSetup.height / 2],
+                [dest.x, dest.y + nodeSetup.height / 2]
               ];
             } else {
               //src is lower than dest
               points = [
-                [src.x + barWidth - 5, src.y + barHeight / 2],
-                [dest.x + barWidth * 0.25, src.y + barHeight / 2],
-                [dest.x + barWidth * 0.25, dest.y]
+                [src.x + nodeSetup.width - 5, src.y + nodeSetup.height / 2],
+                [dest.x + nodeSetup.width * 0.25, src.y + nodeSetup.height / 2],
+                [dest.x + nodeSetup.width * 0.25, dest.y]
               ];
             }
           }
@@ -211,7 +202,7 @@ export class D3FiddlinComponent implements OnInit {
           links
             .append("path")
             .attr("class", "link")
-            .attr("marker-end", d => "url(#arrow)")
+            .attr("marker-end", () => "url(#arrow)")
             .attr("d", pathData);
         });
       }
