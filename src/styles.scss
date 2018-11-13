@@ -53,13 +53,14 @@ body {
 
 .sidebar {
   display: block;
-  width: 200px;
+  width: 400px;
   opacity: 0;
   top: 0;
   position: fixed;
   height: 100%;
   background: blue;
-  right: -200px;
+  right: -400px;
+  color: #fff;
   transition: all 0.3s ease-in-out;
   &.show {
     opacity: 1;
