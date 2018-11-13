@@ -12,6 +12,7 @@ export class GraphicComponent implements OnInit, AfterViewInit {
   public graphic: any = require("./chart.json");
   public svg: any;
   public hierarchical = this.graphic.tasks[0];
+  public sidebar = false;
 
   constructor() { }
 
@@ -47,6 +48,10 @@ export class GraphicComponent implements OnInit, AfterViewInit {
     this.graphic = this.graphic.tasks[0];
   }
 
+  sidebarToggle() {
+    this.sidebar = !this.sidebar;
+  }
+
   chart() {
     const width = 3000;
     const dx = 60;
@@ -56,7 +61,7 @@ export class GraphicComponent implements OnInit, AfterViewInit {
       .linkHorizontal()
       .x(d => d.y)
       .y(d => {
-        if (d.depth && (d.depth == 3 || d.depth == 5) {
+        if (d.depth && (d.depth == 3 || d.depth == 5)) {
           return 0;
         } else {
           return d.x;
@@ -78,16 +83,16 @@ export class GraphicComponent implements OnInit, AfterViewInit {
       .attr("width", width)
       .attr("height", dx)
       .attr("viewBox", [-margin.left, -margin.top, width, dx])
-      .style("font", "14px sans-serif")
+      .style("font-size", "14px")
       .style("user-select", "none");
 
     // The line
     const gLink = svg
       .append("g")
       .attr("fill", "none")
-      .attr("stroke", "#02046d")
+      .attr("stroke", "#e0e0e0")
       .attr("stroke-opacity", 0.4)
-      .attr("stroke-width", 2.5);
+      .attr("stroke-width", 1.5);
 
     const gNode = svg.append("g").attr("cursor", "pointer");
 
@@ -125,23 +130,30 @@ export class GraphicComponent implements OnInit, AfterViewInit {
         .attr("transform", d => `translate(${source.y0},${source.x0})`)
         .attr("fill-opacity", 0)
         .attr("stroke-opacity", 0)
-        .on("click", d => {
-          d.children = d.children ? null : d._children;
-          update(d);
-        });
+
+
 
       nodeEnter
         .append('foreignObject')
         .attr("y", "-25px")
         .attr("x", d => (d._children ? -100 : 15))
-        .attr("width", "400px")
+        .attr("width", "350px")
         .attr("height", "30px")
         .append('xhtml:div')
         .attr("class", "bubble")
-        .attr("position", "absolute")
-        .attr("style",
-          "height: auto; width: auto; display: inline-block;background: #fff; border: 2px solid lightgrey; border-radius: 10px; padding: 10px;"
-        ).text(d => d.data.task)
+        .html((d) => {
+          return `
+            <div class="sidebar-trig"><span class="elipsis">&hellip;</span></div>
+            <div class="text-contain">
+              <img class="icon" src="../../assets/server.png"/>
+              <p class="bubble-text">${d.data.task}</p>
+            </div>
+            `;
+        })
+        .on("click", d => {
+          d.children = d.children ? null : d._children;
+          update(d);
+        });
 
 
       // Transition nodes to their new position.
@@ -206,5 +218,13 @@ export class GraphicComponent implements OnInit, AfterViewInit {
     const container = document.querySelector(".container");
     this.svg = svg.node();
     container.appendChild(this.svg);
+
+    const sidebarTrig = document.querySelectorAll(".sidebar-trig");
+    sidebarTrig.forEach(element => {
+      element.addEventListener("click", event => {
+        event.stopPropagation();
+        this.sidebarToggle();
+      });
+    });
   }
 }
