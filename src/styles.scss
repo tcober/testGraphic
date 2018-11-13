@@ -1,1 +1,62 @@
 /* You can add global styles to this file, and also import other style files */
+body {
+    font-family: proxima-nova, sans-serif;
+    .bubble {
+        display: inline-flex;
+        align-items: center;
+        flex: 0 0 auto;
+        width: auto;
+        background: blue;
+        border: 1px solid #e0e0e0;
+        border-radius: 3px;
+        .sidebar-trig {
+            position: relative;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #fff;
+            margin: 5px;
+            .elipsis {
+                color: blue;
+                font-size: 10px;
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -70%);
+            }
+        }
+
+        .text-contain {
+            display: inline-flex;
+            align-items: center;
+            flex: 0 0 auto;
+            background: #fff;
+            border-radius: 3px 0 0 3px;
+            padding: 0px 20px;
+            .bubble-text {
+                font-weight: medium;
+            }
+            .icon {
+                width: 16px;
+                height: 16px;
+                margin-right: 10px;
+            }
+        }
+    }
+}
+
+.sidebar {
+    display: block;
+    width: 200px;
+    opacity: 0;
+    top: 0;
+    position: fixed;
+    height: 100%;
+    background: blue;
+    right: -200px;
+    transition: all 0.3s ease-in-out;
+    &.show {
+        opacity: 1;
+        right: 0;
+    }
+}
